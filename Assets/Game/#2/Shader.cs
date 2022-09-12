@@ -7,7 +7,6 @@ public class Shader : MonoBehaviour
 {
     public Mesh mesh;
     public Material mat;
-    public Color color;
     public MeshFilter meshFilter;
     private void Start()
     {
@@ -43,13 +42,6 @@ public class Shader : MonoBehaviour
         {
             0,1,2,
             2,1,3
-        };
-        mesh.colors=new Color[]
-        {
-            color,
-            color,
-            color,
-            color
         };
         meshFilter.mesh = mesh;
     }

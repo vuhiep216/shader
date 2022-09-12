@@ -2,12 +2,9 @@ Shader "Unlit/HW1"
 {
     Properties
     {
-        _MainTex ("Texture", 2D) = "white" {}
-        _MainTex1 ("Texture", 2D) = "white" {}
-        _MainTex2 ("Texture", 2D) = "white" {}
-        Rotate("Rotate", Vector) = (0,0,0,0)
-        _Color("Color",Color)=(1,0,0,1)
-        _Color1("Color1",Color)=(1,0,0,1)
+        _MainTex ("Texture", 2D) = "black" {}
+        _MainTex2 ("Texture2", 2D) = "black" {}
+        _Rotation ("Rotation", float) = 0
     }
     SubShader
     {
@@ -26,53 +23,46 @@ Shader "Unlit/HW1"
             {
                 float4 vertex : POSITION;
                 float2 uv : TEXCOORD0;
-                float2 uv2: TEXCOORD1;
-                float2 uv3: TEXCOORD2;
-                float4 color: COLOR;
             };
 
             struct v2f
             {
                 float2 uv : TEXCOORD0;
                 float4 vertex : SV_POSITION;
-                //float2 uv2: TEXCOORD1;
-                //float2 uv3: TEXCOORD2;
-                float4 color: COLOR;
             };
-            float4 _Color;
-            float4 _Color1;
+
             sampler2D _MainTex;
-            //sampler2D _MainTex1;
-            //sampler2D _MainTex2;
+            sampler2D _MainTex2;
             float4 _MainTex_ST;
-            float4 _MainTex1_ST;
-            Vector Rotate;
+            float4 _MainTex2_ST;
+            float _Rotation;
+
             v2f vert (appdata v)
             {
                 v2f o;
                 o.vertex = UnityObjectToClipPos(v.vertex);
-                float2 pivot = float2(0.5, 0.5);
-                float2x2 mrot=float2x2(Rotate.x,-Rotate.y,Rotate.y,Rotate.x);
-                float2x2 mrot2 = float2x2(Rotate.y, -Rotate.x, Rotate.x, Rotate.y);
-                float2 uv = v.uv.xy - pivot;
-                o.uv = mul(mrot, uv);
-                o.uv+= pivot;
-                float2 uv2=(v.uv2.xy-pivot)*_MainTex1_ST.xy;
-                //o.uv2=mul(mrot2,uv2);
-                //o.uv2+=pivot;
-                o.color=v.color;
-                //o.uv3=v.uv3;
+                o.uv = (v.uv - 0.5) * (sin(_Time.x * 20) * 3 + 4) + 0.5;
+
+                o.uv.xy = o.uv * 2 - 1;
+                float c = cos(_Rotation + _Time.y);
+                float s = sin(_Rotation + _Time.y);
+                float2x2 mat = float2x2(c, -s,s,c);
+                o.uv.xy = mul(o.uv.xy, mat);
+                o.uv.xy = o.uv * 0.5 + 0.5f;
                 return o;
             }
 
             fixed4 frag (v2f i) : SV_Target
             {
-                // sample the texture
-                fixed4 col = tex2D(_MainTex, i.uv)*_Color;
-                //fixed4 col1=tex2D(_MainTex1,i.uv2)*_Color1/**i.color*/;
-                //fixed4 col2=tex2D(_MainTex2,i.uv3);
-                //fixed4 col4=i.color;
-                return (col/*+col1+col2+col4*/);
+                fixed4 col;
+                if(i.uv.x < 0 || i.uv.y < 0 || i.uv.x > 1 || i.uv.y > 1) {
+                    col = tex2D(_MainTex, float2(0, 0));
+                }
+                else {
+                    col = tex2D(_MainTex, i.uv);
+                }
+                fixed4 col2 = tex2D(_MainTex2, i.uv);
+                return col;
             }
             ENDCG
         }
